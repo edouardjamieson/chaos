@@ -46,16 +46,20 @@ function add_player(client) {
  //sockets
  app.ws('/socket', (ws, req) => {
 
-    ws.on('open', (client) => {
+    ws.on('connection', function connection(client) {
 
-        if(Object.keys(players).length <= 4) {
-            add_player(client)
-            ws.send('__join__')
-            console.log(players);
-        }else{
-            //Si trop de joueur on kickout le joueur qui essaie de se connecter
-            ws.send('__kill__:too_many_players')
-        }
+        console.log(client);
+
+        // ws.send('test')
+
+        // if(Object.keys(players).length <= 4) {
+        //     add_player(client)
+        //     ws.send('__join__')
+        //     console.log(players);
+        // }else{
+        //     //Si trop de joueur on kickout le joueur qui essaie de se connecter
+        //     ws.send('__kill__:too_many_players')
+        // }
 
     })
  
@@ -88,6 +92,6 @@ function add_player(client) {
   *    ##    ## ##       ##    ##    ## ##   ##       ##    ##  
   *     ######  ######## ##     ##    ###    ######## ##     ## 
   */
- app.listen(process.env.PORT || 3000, () => {
-     console.log("Started server");
- })
+app.listen(process.env.PORT || 3000, () => {
+    console.log("Started server");
+})
