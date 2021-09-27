@@ -46,7 +46,7 @@ function add_player(client) {
  //sockets
  app.ws('/socket', (ws, req) => {
 
-    ws.on('connection', (client) => {
+    ws.on('open', (client) => {
 
         if(Object.keys(players).length <= 4) {
             add_player(client)
