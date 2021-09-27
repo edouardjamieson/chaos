@@ -28,6 +28,7 @@ let players = {}
 function add_player(client) {
     const player = `player${Object.keys(players).length}`
     players[players] = client
+    console.log(`${player} a rejoin la partie.`);
 }
 
 
@@ -50,6 +51,7 @@ function add_player(client) {
         if(Object.keys(players).length <= 4) {
             add_player(client)
             ws.send('__join__')
+            console.log(players);
         }else{
             //Si trop de joueur on kickout le joueur qui essaie de se connecter
             ws.send('__kill__:too_many_players')
@@ -57,20 +59,20 @@ function add_player(client) {
 
     })
  
-    ws.on('message', (msg) => {
+    // ws.on('message', (msg) => {
          
-         if(msg === '__pong__') {
-             clearTimeout(dead_timeout)
-             dead_timeout = setTimeout(() => {
-                 ws.send('__kill__')
-             }, 2000);
-         }
+    //      if(msg === '__pong__') {
+    //          clearTimeout(dead_timeout)
+    //          dead_timeout = setTimeout(() => {
+    //              ws.send('__kill__')
+    //          }, 2000);
+    //      }
  
-     })
+    //  })
  
-     setInterval(() => {
-         ws.send('__ping__')  
-     }, 1000);
+    //  setInterval(() => {
+    //      ws.send('__ping__')  
+    //  }, 1000);
  
  })
  
