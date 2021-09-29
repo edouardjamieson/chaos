@@ -14,7 +14,6 @@
  sockets(app)
  
  let dead_timeout
-
  /***
  *    ########  ##          ###    ##    ## ######## ########   ######  
  *    ##     ## ##         ## ##    ##  ##  ##       ##     ## ##    ## 
@@ -25,11 +24,14 @@
  *    ##        ######## ##     ##    ##    ######## ##     ##  ######  
  */
 let players = {}
+const max_players = 4
 function add_player(client) {
-    const player = `player${Object.keys(players).length}`
+    const player = `player${Object.keys(players).length + 1}`
     players[players] = client
     console.log(`${player} a rejoin la partie.`);
 }
+
+let game_state = "waiting"
 
 
  
@@ -46,37 +48,19 @@ function add_player(client) {
  //sockets
  app.ws('/socket', (ws, req) => {
 
-    ws.on('connection', function connection(client) {
+    ws.on('message', (msg) => {
 
-        console.log(client);
+        if(msg === "__join__") {
+            if(Object.keys(players).length < max_players) {
+                add_player(ws)
+                ws.send("__joined__")
+            }else{
+                ws.send("__too_many_players__")
+            }
+        }
 
-        // ws.send('test')
-
-        // if(Object.keys(players).length <= 4) {
-        //     add_player(client)
-        //     ws.send('__join__')
-        //     console.log(players);
-        // }else{
-        //     //Si trop de joueur on kickout le joueur qui essaie de se connecter
-        //     ws.send('__kill__:too_many_players')
-        // }
 
     })
- 
-    // ws.on('message', (msg) => {
-         
-    //      if(msg === '__pong__') {
-    //          clearTimeout(dead_timeout)
-    //          dead_timeout = setTimeout(() => {
-    //              ws.send('__kill__')
-    //          }, 2000);
-    //      }
- 
-    //  })
- 
-    //  setInterval(() => {
-    //      ws.send('__ping__')  
-    //  }, 1000);
  
  })
  
