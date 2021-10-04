@@ -14,6 +14,40 @@
  sockets(app)
  
  let dead_timeout
+
+ /***
+ *     ######  ##     ##    ###    ##    ## ######## ##        ######  
+ *    ##    ## ##     ##   ## ##   ###   ## ##       ##       ##    ## 
+ *    ##       ##     ##  ##   ##  ####  ## ##       ##       ##       
+ *    ##       ######### ##     ## ## ## ## ######   ##        ######  
+ *    ##       ##     ## ######### ##  #### ##       ##             ## 
+ *    ##    ## ##     ## ##     ## ##   ### ##       ##       ##    ## 
+ *     ######  ##     ## ##     ## ##    ## ######## ########  ######  
+ */
+
+const chanels = {
+    1: {
+        canJoin: true,
+        player: {},
+        god: {},
+    },
+    2: {
+        canJoin: true,
+        player: {},
+        god: {},
+    },
+    3: {
+        canJoin: true,
+        player: {},
+        god: {},
+    },
+    4: {
+        canJoin: true,
+        player: {},
+        god: {},
+    },
+}
+
  /***
  *    ########  ##          ###    ##    ## ######## ########   ######  
  *    ##     ## ##         ## ##    ##  ##  ##       ##     ## ##    ## 
@@ -23,17 +57,11 @@
  *    ##        ##       ##     ##    ##    ##       ##    ##  ##    ## 
  *    ##        ######## ##     ##    ##    ######## ##     ##  ######  
  */
-let players = {}
-const max_players = 4
-function add_player(client) {
-    const player = `player${Object.keys(players).length + 1}`
-    players[players] = client
-    console.log(`${player} a rejoin la partie.`);
+function add_player(client, chanel) {
+    chanels[chanel].canJoin = false
+    chanels[chanel].player['client'] = client
+    chanels[chanel].player['pos'] = { x:0, y:0 }
 }
-
-let game_state = "waiting"
-
-
  
  /***
   *    ########   #######  ##     ## ######## ########  ######  
@@ -46,16 +74,33 @@ let game_state = "waiting"
   */
  
  //sockets
- app.ws('/socket', (ws, req) => {
+ app.ws('/socket/:chanel', (ws, req) => {
+
+    const possible_chanels = [1,2,3,4]
+    const chanel = parseInt(req.params.chanel)
+    if(!possible_chanels.includes(chanel)) return ws.send('__invalid_chanel__')
 
     ws.on('message', (msg) => {
 
-        if(msg === "__join__") {
-            if(Object.keys(players).length < max_players) {
-                add_player(ws)
-                ws.send("__joined__")
+        const json = JSON.parse(msg)
+        const code = json.code
+        const action = json.action
+        const data = json.data
+
+        if(code === "__join__") {
+            if(chanels[chanel].canJoin === true) {
+                add_player(ws, chanel)
+                ws.send(JSON.stringify({ code:"__joined__", data:chanels[chanel].player['pos']}))
             }else{
-                ws.send("__too_many_players__")
+                ws.send(JSON.stringify({ code:"__too_many_players__", data:""}))
+            }
+        }
+        else if(code === "__action__") {
+            // if(action.length < 1) return ws.send('incorrect input.')
+
+            if(action === "move") {
+                chanels[chanel].player['pos'] = data
+                console.log(chanels[chanel].player['pos']);
             }
         }
 
