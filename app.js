@@ -74,8 +74,8 @@ function add_player(client, chanel) {
 //sockets
 app.ws('/socket/:chanel', (ws, req) => {
 
-    const possible_chanels = [1,2,3,4,"god"]
-    const chanel = parseInt(req.params.chanel)
+    const possible_chanels = ["1","2","3","4","god"]
+    const chanel = req.params.chanel
     if(!possible_chanels.includes(chanel)) return ws.send('__invalid_chanel__')
 
     ws.on('message', (msg) => {
