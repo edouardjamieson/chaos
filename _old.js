@@ -86,118 +86,64 @@ app.ws('/socket/:chanel', (ws, req) => {
 
     ws.on('message', (msg) => {
 
-        const code = get_code(msg)
-
-        /***
-         *                            
-         *          #  ####  # #    # 
-         *          # #    # # ##   # 
-         *          # #    # # # #  # 
-         *          # #    # # #  # # 
-         *     #    # #    # # #   ## 
-         *      ####   ####  # #    # 
-         *                            
-         */
-        if(code === "__join__") {
-            if(chanel !== "god") {
-                if(chanels[chanel].canJoin === true) {
-                    add_player(ws, chanel)
-                    ws.send("__joined__")
+        if(isJSON(msg)) {
+            const json = JSON.parse(msg)
+            const code = json.code
+            const action = json.action
+            const data = json.data
+    
+            if(code === "__join__") {
+                if(chanel !== "god") {
+                    if(chanels[chanel].canJoin === true) {
+                        add_player(ws, chanel)
+                        ws.send(JSON.stringify({ code:"__joined__", data:chanels[chanel].player['pos']}))
+                    }else{
+                        ws.send(JSON.stringify({ code:"__too_many_players__", data:""}))
+                    }
                 }else{
-                    ws.send("__too_many_players__")
+                    gods.push(ws)
                 }
-            }else{
-                ws.send("__joined_gods__")
-                gods.push(ws)
             }
-        }
-        /***
-         *                                 
-         *     #    #  ####  #    # ###### 
-         *     ##  ## #    # #    # #      
-         *     # ## # #    # #    # #####  
-         *     #    # #    # #    # #      
-         *     #    # #    #  #  #  #      
-         *     #    #  ####    ##   ###### 
-         *                                 
-         */
-        else if(code === "__move__") {
-            // STRUCTURE
-            // __move__|x:10;y:10
-            const positions = {}
-            const content = get_content(msg)
-            const positions_string = content.split(';')
-            positions_string.foreach(pos => {
-                const p = pos.split(':')
-                positions[p[0]] = p[1]
-            })
-            chanels[chanel].player['pos'] = positions
-            ws.send(`__moved__|x:${positions.x};y${positions.y}`)
-        }
-        /***
-         *                                         
-         *       ##    ####  ##### #  ####  #    # 
-         *      #  #  #    #   #   # #    # ##   # 
-         *     #    # #        #   # #    # # #  # 
-         *     ###### #        #   # #    # #  # # 
-         *     #    # #    #   #   # #    # #   ## 
-         *     #    #  ####    #   #  ####  #    # 
-         *                                         
-         */
-        else if(code === "__action__") {
-
-            ws.send('__action_pressed__')
-
-            // if(action === "move") {
-            //     chanels[chanel].player['pos'] = data
-            // }
-
-            // if(action === "minigame_complete") {
-            //     ws.send()
-            // }
-            
-            // if(action === "exit") {
-            //     chanels[chanel] = {
-            //         canJoin: true,
-            //         player: {},
-            //     }
-            // }
-
-        }
-
-        /***
-         *                                                   
-         *     #    # # #    # #  ####    ##   #    # ###### 
-         *     ##  ## # ##   # # #    #  #  #  ##  ## #      
-         *     # ## # # # #  # # #      #    # # ## # #####  
-         *     #    # # #  # # # #  ### ###### #    # #      
-         *     #    # # #   ## # #    # #    # #    # #      
-         *     #    # # #    # #  ####  #    # #    # ###### 
-         *                                                   
-         */
-        else if(code === "__minigame_done__") {
-            
-        }
-
-        else if(code === "__ping__") {
-            clearTimeout(chanels[chanel].timer)
-            ws.send('__pong__')
-
-            chanels[chanel].timer = setTimeout(() => {
-                ws.send('__kill__')
-                chanels[chanel] = {
-                    canJoin: true,
-                    player: {},
-                    timer: null
+            else if(code === "__action__") {
+    
+                if(action === "move") {
+                    chanels[chanel].player['pos'] = data
                 }
-            }, 1000);
+
+                if(action === "minigame_complete") {
+                    ws.send()
+                }
+                
+                if(action === "exit") {
+                    chanels[chanel] = {
+                        canJoin: true,
+                        player: {},
+                    }
+                }
+
+            }
+            else if(code === "__ping__") {
+                clearTimeout(chanels[chanel].timer)
+                ws.send('__pong__')
+
+                chanels[chanel].timer = setTimeout(() => {
+                    ws.send('__kill__')
+                    chanels[chanel] = {
+                        canJoin: true,
+                        player: {},
+                        timer: null
+                    }
+                }, 1000);
+            }
+
+        } else {
+            ws.send(msg)
         }
+
 
 
         gods.forEach(god => {
-            god.send(`__channel_${chanels}__|${msg}`)
-            // if(chanel !== "god") {
-            // }
+            god.send(JSON.stringify({ chanel: chanel, msg: msg }))
         })
 
 
@@ -215,13 +161,13 @@ app.ws('/socket/:chanel', (ws, req) => {
  *     #######     ##    #### ########  ######  
  */
 
-function get_code(string) {
-    const code = string.split('|')
-    return code[0]
-}
-function get_content(string) {
-    const code = string.split('|')
-    return code[1]
+function isJSON(string) {
+    try {
+        JSON.parse(string)
+    } catch (error) {
+        return false
+    }
+    return true
 }
  
  //public
