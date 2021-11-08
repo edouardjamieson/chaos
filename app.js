@@ -127,7 +127,7 @@ app.ws('/socket/:chanel', (ws, req) => {
             const positions = {}
             const content = get_content(msg)
             const positions_string = content.split(';')
-            positions_string.foreach(pos => {
+            positions_string.forEach(pos => {
                 const p = pos.split(':')
                 positions[p[0]] = p[1]
             })
@@ -195,7 +195,7 @@ app.ws('/socket/:chanel', (ws, req) => {
 
 
         gods.forEach(god => {
-            god.send(`__channel_${chanels}__|${msg}`)
+            god.send(`__channel_${chanel}__|${msg}`)
             // if(chanel !== "god") {
             // }
         })
